@@ -1,0 +1,45 @@
+body {
+    text-align: center;
+    background-image: url('./weather-bg.png');
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+
+.container {
+    display: block;
+}
+
+#location {
+    font-size: 35px;
+    font-weight: bold;
+    font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+}
+
+input {
+    background-color: rgba(0, 0, 0, 0.2);
+    color: white;
+    text-align: center;
+    border-radius: 25px 8px 25px 8px;
+    padding-left: 10px;
+    padding-right: 10px;
+    width: 300px;
+    height: 40px;
+}
+
+#location-time > span {
+    display: block;
+    color: white;
+}
+
+#location-time {
+    margin-top: 5%;
+}
+
+#weather-info > div {
+    color: white;
+}
+
+#temp {
+    font-size: 50px;
+    font-weight: bold;
+}
