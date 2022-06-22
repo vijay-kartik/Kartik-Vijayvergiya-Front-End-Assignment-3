@@ -45,6 +45,7 @@ h1 {
     width: 700px;
     min-width: 200px;
     margin-top: 20px;
+    margin-bottom: 15px;
     font-size: 15px;
     border: none;
     border-radius: 2px;
@@ -55,4 +56,13 @@ h1 {
 .params-values {
     margin-top: 2px;
     font-size: 25px;
+}
+
+button {
+    height: 30px;
+    width: 100px;
+    border: none;
+    color: white;
+    background-color: rgb(37, 4, 89);
+    box-shadow: 1px 1px 1px 1px black;
 }
