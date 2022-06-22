@@ -1,28 +1,75 @@
+// declare DOM node variables 
 const inputElement = document.querySelector('input');
 const messageArea = document.querySelector(".message");
 const restartBtn = document.querySelector('button');
-const errorElement = document.querySelector('#errors-text');
-const accuracyElement = document.querySelector('#accuracy-text');
-const dummyText = "The journey of a thousand miles begins with a single step.";
-const hintMessage = "Click the area below to start the game."
+const errorTextField = document.querySelector('#errors-text');
+const accuracyTextField = document.querySelector('#accuracy-text');
+const timedText = document.getElementById("time-text");
+
+// declare data variables
+const typingTextStrings = [
+    "Carbon dioxide is a chemical compound that is usually in the form of a gas.", 
+    "Valuable ores lay hidden beneath Death Valley.", 
+    "The sport of mountain biking is one of the best active sports you can partake in", 
+    "They did nothing as the raccoon attacked the lady’s bag of food.",
+    "Be like the flower that gives its fragrance to even the hand that crushes it.",
+    "Shoot for the moon, even if you fail, you'll land among the stars.",
+    "Arise, awake, stop not till the goal is reached.", 
+    "Boredom can be a lethal thing on a small island.", 
+    "While Mount Everest is the highest altitude mountain, the tallest mountain on earth is Mauna Kea.", 
+    "Bubbles are the number one cause of damage to ship propellers."
+];
+const introMessage = "Click the area below to start the game."
 const colors = ["black", "green", "red"];
 let timerId = -1;
 let timePassed = 0;
 let errorCount = 0;
+let currentStringIndex = 0;
 
-const timedText = document.getElementById("time-text");
-inputElement.addEventListener('input', updateValue);
-
+// add click listeners
 inputElement.addEventListener('focus', handleTypingAreaFocus);
 
-restartBtn.addEventListener('click', resetParams);
+inputElement.addEventListener('input', updateValue);
+
+restartBtn.addEventListener('click', handleRestart);
+
+function loadValues() {
+    inputElement.value = "";
+    errorTextField.innerText = "0"
+    timedText.innerText = "60s";
+    accuracyTextField.innerText = "100";
+    messageArea.innerHTML = "";
+    messageArea.appendChild(createMessageSpanNode(introMessage, 0, '15px'));
+}
+
+function resetParams() {
+    timePassed = 0;
+    errorCount = 0;
+}
+
+function shuffle(array) {
+    array.sort(() => Math.random() - 0.5);
+}
 
 function handleTypingAreaFocus(event) {
-    changeMessageText(event);
-    timePassed=0;
-    errorCount = 0;
-    timedText.innerText = (60-timePassed).toString() + 's';
+    changeMessageText();
     startTimer();
+}
+
+function changeMessageText(event) {
+    messageArea.innerHTML = "";
+    shuffle(typingTextStrings);
+    messageArea.appendChild(createMessageSpanNode(typingTextStrings[0], 0, '15px'));
+}
+
+function createMessageSpanNode(messageString, colorType, fontSize) {
+    let textNode = document.createElement('span');
+    if(messageString.length > 0) {
+        textNode.innerText = messageString;
+        textNode.style.color = colors[colorType];
+        textNode.style.fontSize = fontSize;
+    }
+    return textNode;
 }
 
 function startTimer() {
@@ -31,30 +78,9 @@ function startTimer() {
         timedText.innerText = (60-timePassed).toString() + 's';
         if(timePassed === 60) {
             clearInterval(timerId);
+            resetParams();
         }
     }, 1000);
-}
-
-function changeMessageText(event) {
-    let messageSpan = document.querySelector("#message-text");
-    messageSpan.innerText = dummyText;
-    messageSpan.style.fontSize = '15px';
-    
-}
-
-function appendTextNode(textString, colorType, fontSize) {
-    if(textString.length > 0) {
-        let textNode = document.createElement('span');
-        textNode.innerText = textString;
-        textNode.style.color = colors[colorType];
-        textNode.style.fontSize = fontSize;
-        messageArea.appendChild(textNode);
-        if(colorType == 2) {
-            errorCount += textString.length;
-            errorElement.innerText = errorCount;
-        }
-
-    }
 }
 
 function updateValue(event) {
@@ -62,7 +88,8 @@ function updateValue(event) {
     errorCount = 0;
     let inputValue = event.target.value;
     let inputLen = inputValue.length;
-    let textLen = dummyText.length;
+    let textLen = typingTextStrings[currentStringIndex].length;
+    let dummyText = typingTextStrings[currentStringIndex]
     
     let i = 0;
     let currentText = "";
@@ -93,17 +120,35 @@ function updateValue(event) {
         i++;
     }
     appendTextNode(currentText, currentType, '15px');
-    accuracyElement.innerText = Math.floor((1 - errorCount/inputLen)*100);
-    
+    updateAccuracyAndError(inputLen);
 }
 
-function resetParams() {
-    timePassed=0;
-    timedText.innerText = '60s';
-    messageArea.innerText = hintMessage;
-    inputElement.innerText = '';
-    errorCount = 0;
-    errorElement.innerText = 0;
-    accuracyElement.innerText = 100;
+
+function appendTextNode(textString, colorType, fontSize) {
+    if(textString.length > 0) {
+        let textNode = document.createElement('span');
+        textNode.innerText = textString;
+        textNode.style.color = colors[colorType];
+        textNode.style.fontSize = fontSize;
+        messageArea.appendChild(textNode);
+        if(colorType == 2) {
+            errorCount += textString.length;
+        }
+    }
 }
+
+function updateAccuracyAndError(inputLen) {
+    accuracyTextField.innerText = Math.floor((1 - errorCount/inputLen)*100);
+    errorTextField.innerText = errorCount; 
+}
+
+function handleRestart() {
+    loadValues();
+    resetParams();
+    clearInterval(timerId);
+}
+
+
+//start
+loadValues();
 
