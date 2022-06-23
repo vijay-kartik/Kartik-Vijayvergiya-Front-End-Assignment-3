@@ -49,7 +49,7 @@ function loadValues() {
     timedText.innerText = "60s";
     accuracyTextField.innerText = "100";
     changeMessageText(introMessage);
-    // hideResult();
+    shuffle(typingTextStrings);
 }
 
 function resetParams() {
@@ -57,7 +57,6 @@ function resetParams() {
     errorCount = 0;
     globalErrorCount = 0;
     cpm = 0; wpm = 0;
-    shuffle(typingTextStrings);
 }
 
 function shuffle(array) {
@@ -88,9 +87,7 @@ function startTimer() {
     timerId = setInterval(() => {
         timePassed++;
         timedText.innerText = (60-timePassed).toString() + 's';
-        if(timePassed === 5) {
-            // clearInterval(timerId);
-            // resetParams();
+        if(timePassed === 60) {
             endTimer();
         }
     }, 1000);
