@@ -66,3 +66,7 @@ button {
     background-color: rgb(37, 4, 89);
     box-shadow: 1px 1px 1px 1px black;
 }
+
+#cpm {
+    visibility: collapse;
+}

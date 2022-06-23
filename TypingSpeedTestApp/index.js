@@ -5,6 +5,7 @@ const restartBtn = document.querySelector('button');
 const errorTextField = document.querySelector('#errors-text');
 const accuracyTextField = document.querySelector('#accuracy-text');
 const timedText = document.getElementById("time-text");
+const cpmDiv = document.getElementById("cpm");
 
 // declare data variables
 const typingTextStrings = [
@@ -20,46 +21,50 @@ const typingTextStrings = [
     "Bubbles are the number one cause of damage to ship propellers."
 ];
 const introMessage = "Click the area below to start the game."
+const restartMessage = "Click on restart to start a new game."
 const colors = ["black", "green", "red"];
 let timerId = -1;
 let timePassed = 0;
 let errorCount = 0;
+let globalErrorCount = 0;
 let currentStringIndex = 0;
+let cpm = 0;
 
 // add click listeners
 inputElement.addEventListener('focus', handleTypingAreaFocus);
 
-inputElement.addEventListener('input', updateValue);
+inputElement.addEventListener('input', handleInputUpdate);
 
 restartBtn.addEventListener('click', handleRestart);
 
 function loadValues() {
     inputElement.value = "";
+    inputElement.disabled = false;
     errorTextField.innerText = "0"
     timedText.innerText = "60s";
     accuracyTextField.innerText = "100";
-    messageArea.innerHTML = "";
-    messageArea.appendChild(createMessageSpanNode(introMessage, 0, '15px'));
+    changeMessageText(introMessage);
 }
 
 function resetParams() {
     timePassed = 0;
     errorCount = 0;
+    globalErrorCount = 0;
+    cpm = 0;
 }
 
 function shuffle(array) {
     array.sort(() => Math.random() - 0.5);
 }
 
-function handleTypingAreaFocus(event) {
-    changeMessageText();
+function handleTypingAreaFocus() {
+    changeMessageText(typingTextStrings[currentStringIndex]);
     startTimer();
 }
 
-function changeMessageText(event) {
+function changeMessageText(messageString) {
     messageArea.innerHTML = "";
-    shuffle(typingTextStrings);
-    messageArea.appendChild(createMessageSpanNode(typingTextStrings[0], 0, '15px'));
+    messageArea.appendChild(createMessageSpanNode(messageString, 0, '15px'));
 }
 
 function createMessageSpanNode(messageString, colorType, fontSize) {
@@ -76,11 +81,44 @@ function startTimer() {
     timerId = setInterval(() => {
         timePassed++;
         timedText.innerText = (60-timePassed).toString() + 's';
-        if(timePassed === 60) {
-            clearInterval(timerId);
-            resetParams();
+        if(timePassed === 10) {
+            // clearInterval(timerId);
+            // resetParams();
+            endTimer();
         }
     }, 1000);
+}
+
+function endTimer() {
+    clearInterval(timerId);
+    //focus out from input
+    inputElement.disabled = true;
+    changeMessageText(restartMessage);
+    //add wpm and cpm
+    appendResult();
+}
+
+function appendResult() {
+    cpmDiv.style.visibility = 'visible'
+    cpmDiv.style.alignItems = 'center'
+    let cpmTextField = document.getElementById('cpm-text');
+    console.log("wpm : " + cpm);
+    cpmTextField.innerText = cpm;
+}
+function hideResult() {
+    cpmDiv.style.visibility = 'collapse';
+}
+
+function handleInputUpdate(event) {
+    let inputValue = event.target.value;
+    if(inputValue.length === typingTextStrings[currentStringIndex].length) {
+        currentStringIndex++;
+        changeMessageText(typingTextStrings[currentStringIndex]);
+        inputElement.value = "";
+    } else {
+        updateValue(event);
+    }
+    cpm++;
 }
 
 function updateValue(event) {
@@ -89,7 +127,7 @@ function updateValue(event) {
     let inputValue = event.target.value;
     let inputLen = inputValue.length;
     let textLen = typingTextStrings[currentStringIndex].length;
-    let dummyText = typingTextStrings[currentStringIndex]
+    let dummyText = typingTextStrings[currentStringIndex];
     
     let i = 0;
     let currentText = "";
@@ -101,15 +139,14 @@ function updateValue(event) {
                 currentType = 1;
                 currentText = "";
             }
-            currentText+=dummyText.charAt(i);
         } else {
             if(currentType != 2) {
                 appendTextNode(currentText, currentType, '15px');
                 currentText = "";
                 currentType = 2;
             }
-            currentText += dummyText.charAt(i);
         }
+        currentText += dummyText.charAt(i);
         i++;
     }
     appendTextNode(currentText, currentType, '15px');
@@ -120,7 +157,7 @@ function updateValue(event) {
         i++;
     }
     appendTextNode(currentText, currentType, '15px');
-    updateAccuracyAndError(inputLen);
+    updateAccuracyAndError();
 }
 
 
@@ -137,15 +174,16 @@ function appendTextNode(textString, colorType, fontSize) {
     }
 }
 
-function updateAccuracyAndError(inputLen) {
-    accuracyTextField.innerText = Math.floor((1 - errorCount/inputLen)*100);
-    errorTextField.innerText = errorCount; 
+function updateAccuracyAndError() {
+    accuracyTextField.innerText = Math.floor((1 - errorCount/typingTextStrings[currentStringIndex].length)*100);
+    errorTextField.innerText = errorCount;
 }
 
 function handleRestart() {
     loadValues();
     resetParams();
     clearInterval(timerId);
+    hideResult();
 }
 
 
