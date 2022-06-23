@@ -5,7 +5,10 @@ const restartBtn = document.querySelector('button');
 const errorTextField = document.querySelector('#errors-text');
 const accuracyTextField = document.querySelector('#accuracy-text');
 const timedText = document.getElementById("time-text");
-const cpmDiv = document.getElementById("cpm");
+const paramsDiv = document.querySelector("#speed-params");
+let cpmDiv = null;
+let wpmDiv = null;
+
 
 // declare data variables
 const typingTextStrings = [
@@ -28,7 +31,9 @@ let timePassed = 0;
 let errorCount = 0;
 let globalErrorCount = 0;
 let currentStringIndex = 0;
-let cpm = 0;
+let cpm = 0, wpm = 0;
+let typedStringLen = 0;
+
 
 // add click listeners
 inputElement.addEventListener('focus', handleTypingAreaFocus);
@@ -44,13 +49,15 @@ function loadValues() {
     timedText.innerText = "60s";
     accuracyTextField.innerText = "100";
     changeMessageText(introMessage);
+    // hideResult();
 }
 
 function resetParams() {
     timePassed = 0;
     errorCount = 0;
     globalErrorCount = 0;
-    cpm = 0;
+    cpm = 0; wpm = 0;
+    shuffle(typingTextStrings);
 }
 
 function shuffle(array) {
@@ -81,7 +88,7 @@ function startTimer() {
     timerId = setInterval(() => {
         timePassed++;
         timedText.innerText = (60-timePassed).toString() + 's';
-        if(timePassed === 10) {
+        if(timePassed === 5) {
             // clearInterval(timerId);
             // resetParams();
             endTimer();
@@ -95,30 +102,67 @@ function endTimer() {
     inputElement.disabled = true;
     changeMessageText(restartMessage);
     //add wpm and cpm
-    appendResult();
+    showResult();
 }
 
-function appendResult() {
-    cpmDiv.style.visibility = 'visible'
-    cpmDiv.style.alignItems = 'center'
-    let cpmTextField = document.getElementById('cpm-text');
-    console.log("wpm : " + cpm);
+function showResult() {
+    cpmDiv = document.createElement('div');
+    cpmDiv.classList.add('speed-params-container');
+    let cpmSpan = document.createElement('span');
+    cpmSpan.innerText = 'CPM';
+    let cpmTextField = document.createElement('span');
+    cpmTextField.classList.add('params-values');
+    cpmTextField.id = 'cpm-text';
     cpmTextField.innerText = cpm;
+    cpmDiv.appendChild(cpmSpan);
+    cpmDiv.appendChild(document.createElement('br'));
+    cpmDiv.appendChild(cpmTextField);
+    paramsDiv.insertBefore(cpmDiv, paramsDiv.firstChild);
+
+    wpmDiv = document.createElement('div');
+    wpmDiv.classList.add('speed-params-container');
+    let wpmSpan = document.createElement('span');
+    wpmSpan.innerText = 'WPM';
+    let wpmTextField = document.createElement('span');
+    wpmTextField.classList.add('params-values');
+    wpmTextField.id = 'wpm-text';
+    wpmTextField.innerText = wpm;
+    wpmDiv.appendChild(wpmSpan);
+    wpmDiv.appendChild(document.createElement('br'));
+    wpmDiv.appendChild(wpmTextField);
+    paramsDiv.insertBefore(wpmDiv, paramsDiv.firstChild);
 }
 function hideResult() {
-    cpmDiv.style.visibility = 'collapse';
+    paramsDiv.removeChild(cpmDiv);
+    paramsDiv.removeChild(wpmDiv);
+}
+
+function findDiff(inputString, outputString) {
+    let error = 0;
+    for(let i = 0; i < inputString.length; i++) {
+        if(inputString[i] != outputString[i]) {
+            error++;
+        }
+    }
+    return error;
 }
 
 function handleInputUpdate(event) {
     let inputValue = event.target.value;
     if(inputValue.length === typingTextStrings[currentStringIndex].length) {
+        typedStringLen += typingTextStrings[currentStringIndex].length;
+        globalErrorCount += findDiff(inputValue, typingTextStrings[currentStringIndex]);
         currentStringIndex++;
         changeMessageText(typingTextStrings[currentStringIndex]);
         inputElement.value = "";
+        
     } else {
         updateValue(event);
     }
     cpm++;
+    if(inputValue.charAt(inputValue.length - 1) == ' ') {
+        wpm++;
+    }
 }
 
 function updateValue(event) {
@@ -175,8 +219,8 @@ function appendTextNode(textString, colorType, fontSize) {
 }
 
 function updateAccuracyAndError() {
-    accuracyTextField.innerText = Math.floor((1 - errorCount/typingTextStrings[currentStringIndex].length)*100);
-    errorTextField.innerText = errorCount;
+    accuracyTextField.innerText = Math.floor((1 - (globalErrorCount + errorCount)/(typedStringLen + typingTextStrings[currentStringIndex].length))*100);
+    errorTextField.innerText = globalErrorCount + errorCount;
 }
 
 function handleRestart() {
